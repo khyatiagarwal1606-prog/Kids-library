@@ -1,79 +1,196 @@
 <!DOCTYPE html>
-const title = document.getElementById("bookTitle").value.trim();
-const owner = document.getElementById("bookOwner").value;
-if(!title) return alert("Please enter a book title!");
-books.push({title, owner, reservedBy:null, reservedDate:null});
-saveBooks(); renderBooks(); document.getElementById("bookTitle").value = "";
-}
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kids Library Exchange</title>
+  <style>
+    body { font-family: "Comic Sans MS", cursive, sans-serif; background: linear-gradient(135deg,#f9e7fe,#e3f8ff); margin:0; padding:0; }
+    header { background:#ff6f61; color:white; padding:18px; text-align:center; font-size:28px; }
+    .container{ max-width:900px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 6px 12px rgba(0,0,0,0.12); }
+    input, select { padding:10px; border-radius:8px; border:2px solid #ffb347; font-size:15px; margin:6px 4px; }
+    button{ padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:bold; }
+    button.upload{ background:#ff6f61; color:#fff; }
+    button.reserve{ background:#4caf50; color:#fff; }
+    button.cancel{ background:#f44336; color:#fff; }
+    table{ width:100%; border-collapse:collapse; margin-top:18px; }
+    th,td{ padding:12px; text-align:center; border-bottom:1px solid #eee; }
+    th{ background:#ffb347; color:#fff; }
+    tr:nth-child(even){ background:#fff8e7; }
+    tr:nth-child(odd){ background:#e7faff; }
+  </style>
+</head>
+<body>
+  <header>📚 Kids Library Exchange</header>
 
+  <div class="container">
+    <h2>✨ Upload a Book</h2>
+    <input id="bookTitle" type="text" placeholder="📘 Enter book title" />
+    <select id="bookOwner">
+      <option value="Khyati">👧 Khyati</option>
+      <option value="Anira">👧 Anira</option>
+      <option value="Advaiya">👦 Advaiya</option>
+      <option value="Swasti">👧 Swasti</option>
+    </select>
+    <button class="upload" onclick="addBook()">➕ Upload Book</button>
 
-function reserveBook(index, person){
-books[index].reservedBy = person;
-books[index].reservedDate = new Date();
-saveBooks(); renderBooks();
-sendEmail(books[index].owner, books[index].title, "reserved", person);
-}
+    <h2>📖 Books List</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Owner</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="booksTable"></tbody>
+    </table>
+  </div>
 
+  <!-- EmailJS SDK (must be before the script that calls emailjs) -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    // Initialize EmailJS - replace rVfSXDJVgM16f71ol with your EmailJS public key
+    if (typeof emailjs !== "undefined") {
+      emailjs.init("rVfSXDJVgM16f71ol");
+    } else {
+      console.warn("EmailJS SDK not loaded.");
+    }
 
-function cancelReservation(index){
-const reserver = books[index].reservedBy;
-const bookTitle = books[index].title;
-const owner = books[index].owner;
-books[index].reservedBy = null;
-books[index].reservedDate = null;
-saveBooks(); renderBooks();
-sendEmail(owner, bookTitle, "unreserved", reserver);
-}
+    // map owners to emails (replace with real emails)
+    const friendEmails = {
+      "Khyati": "khyati.agarwal1606@gmail.com",
+      "Anira":  "bendre.manali@gmail.com",
+      "Advaiya": "ankooragrawal@gmail.com",
+      "Swasti":  "swasti@example.com"
+    };
 
+    // load books from localStorage
+    let books = JSON.parse(localStorage.getItem("books") || "[]");
 
-function renderBooks(){
-const tbody = document.getElementById("booksTable");
-tbody.innerHTML = "";
-books.forEach((book,i)=>{
-let status="✅ Available";
-let actionBtn="";
-if(book.reservedBy){
-const days = Math.floor((new Date()-new Date(book.reservedDate))/(1000*60*60*24));
-status=`🚫 Reserved by ${book.reservedBy} (${days} days)`;
-actionBtn=`<button class="cancel" onclick="cancelReservation(${i})">🔓 Unreserve</button>`;
-} else {
-actionBtn=`
-<select id="reserver${i}">
-<option value="Khyati">👧 Khyati</option>
-<option value="Anira">👧 Anira</option>
-<option value="Advaiya">👦 Advaiya</option>
-<option value="Swasti">👧 Swasti</option>
-</select>
-<button class="reserve" onclick="reserveBook(${i}, document.getElementById('reserver${i}').value)">🔒 Reserve</button>
-`;
-}
-tbody.innerHTML+=`
-<tr>
-<td>📘 ${book.title}</td>
-<td>${book.owner}</td>
-<td>${status}</td>
-<td>${actionBtn}</td>
-</tr>
-`;
-});
-}
+    function saveBooks(){
+      localStorage.setItem("books", JSON.stringify(books));
+    }
 
+    function addBook(){
+      const titleEl = document.getElementById("bookTitle");
+      const ownerEl = document.getElementById("bookOwner");
+      const title = (titleEl.value || "").trim();
+      const owner = ownerEl.value;
 
-function sendEmail(owner, bookTitle, action, reserver){
-const ownerEmail = friendEmails[owner]; if(!ownerEmail) return;
-const dateTime = new Date().toLocaleString();
-emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID",{
-to_email: ownerEmail,
-book_title: bookTitle,
-action: action,
-reserver_name: reserver,
-date_time: dateTime
-}).then(res=>{console.log("✅ Email sent",res.status,res.text);})
-.catch(err=>{console.error("❌ Email failed",err);});
-}
+      if (!title) {
+        alert("Please enter a book title!");
+        return;
+      }
 
+      books.push({ title, owner, reservedBy: null, reservedDate: null });
+      saveBooks();
+      renderBooks();
+      titleEl.value = "";
+    }
 
-renderBooks();
-</script>
+    function reserveBook(index, person){
+      if (!person) return;
+      books[index].reservedBy = person;
+      books[index].reservedDate = new Date().toISOString();
+      saveBooks();
+      renderBooks();
+
+      // notify owner via EmailJS
+      sendEmail(books[index].owner, books[index].title, "reserved", person);
+    }
+
+    function cancelReservation(index){
+      const reserver = books[index].reservedBy;
+      const bookTitle = books[index].title;
+      const owner = books[index].owner;
+
+      books[index].reservedBy = null;
+      books[index].reservedDate = null;
+      saveBooks();
+      renderBooks();
+
+      // notify owner via EmailJS
+      sendEmail(owner, bookTitle, "unreserved", reserver);
+    }
+
+    function renderBooks(){
+      const tbody = document.getElementById("booksTable");
+      if(!tbody) return;
+      tbody.innerHTML = "";
+
+      books.forEach((book, i) => {
+        const titleSafe = escapeHtml(book.title);
+        const ownerSafe = escapeHtml(book.owner);
+
+        let statusText = "✅ Available";
+        let actionHtml = "";
+
+        if (book.reservedBy) {
+          const days = Math.floor((new Date() - new Date(book.reservedDate)) / (1000*60*60*24));
+          statusText = `🚫 Reserved by ${escapeHtml(book.reservedBy)} (${days} days)`;
+          actionHtml = `<button class="cancel" onclick="cancelReservation(${i})">🔓 Unreserve</button>`;
+        } else {
+          actionHtml = `
+            <select id="reserver${i}">
+              <option value="Khyati">👧 Khyati</option>
+              <option value="Anira">👧 Anira</option>
+              <option value="Advaiya">👦 Advaiya</option>
+              <option value="Swasti">👧 Swasti</option>
+            </select>
+            <button class="reserve" onclick="reserveBook(${i}, document.getElementById('reserver${i}').value)">🔒 Reserve</button>
+          `;
+        }
+
+        const row = `
+          <tr>
+            <td>📘 ${titleSafe}</td>
+            <td>${ownerSafe}</td>
+            <td>${statusText}</td>
+            <td>${actionHtml}</td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML("beforeend", row);
+      });
+    }
+
+    // simple HTML-escape to avoid injected markup from titles
+    function escapeHtml(str){
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function sendEmail(owner, bookTitle, action, reserver){
+      const ownerEmail = friendEmails[owner];
+      if (!ownerEmail) {
+        console.warn("No email for owner:", owner);
+        return;
+      }
+
+      const dateTime = new Date().toLocaleString();
+
+      // replace service_iqtrvkr and template_5l1i9qf with your EmailJS values
+      emailjs.send("service_iqtrvkr","template_5l1i9qf", {
+        to_email: ownerEmail,
+        book_title: bookTitle,
+        action: action,
+        reserver_name: reserver,
+        date_time: dateTime
+      }).then(response => {
+        console.log("Email sent:", response.status, response.text);
+      }).catch(err => {
+        console.error("Email send error:", err);
+      });
+    }
+
+    // initial render
+    renderBooks();
+  </script>
 </body>
 </html>
