@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+const title = document.getElementById("bookTitle").value.trim();
+const owner = document.getElementById("bookOwner").value;
+if(!title) return alert("Please enter a book title!");
+books.push({title, owner, reservedBy:null, reservedDate:null});
+saveBooks(); renderBooks(); document.getElementById("bookTitle").value = "";
+}
+
+
+function reserveBook(index, person){
+books[index].reservedBy = person;
+books[index].reservedDate = new Date();
+saveBooks(); renderBooks();
+sendEmail(books[index].owner, books[index].title, "reserved", person);
+}
+
+
+function cancelReservation(index){
+const reserver = books[index].reservedBy;
+const bookTitle = books[index].title;
+const owner = books[index].owner;
+books[index].reservedBy = null;
+books[index].reservedDate = null;
+saveBooks(); renderBooks();
+sendEmail(owner, bookTitle, "unreserved", reserver);
+}
+
+
+function renderBooks(){
+const tbody = document.getElementById("booksTable");
+tbody.innerHTML = "";
+books.forEach((book,i)=>{
+let status="✅ Available";
+let actionBtn="";
+if(book.reservedBy){
+const days = Math.floor((new Date()-new Date(book.reservedDate))/(1000*60*60*24));
+status=`🚫 Reserved by ${book.reservedBy} (${days} days)`;
+actionBtn=`<button class="cancel" onclick="cancelReservation(${i})">🔓 Unreserve</button>`;
+} else {
+actionBtn=`
+<select id="reserver${i}">
+<option value="Khyati">👧 Khyati</option>
+<option value="Anira">👧 Anira</option>
+<option value="Advaiya">👦 Advaiya</option>
+<option value="Swasti">👧 Swasti</option>
+</select>
+<button class="reserve" onclick="reserveBook(${i}, document.getElementById('reserver${i}').value)">🔒 Reserve</button>
+`;
+}
+tbody.innerHTML+=`
+<tr>
+<td>📘 ${book.title}</td>
+<td>${book.owner}</td>
+<td>${status}</td>
+<td>${actionBtn}</td>
+</tr>
+`;
+});
+}
+
+
+function sendEmail(owner, bookTitle, action, reserver){
+const ownerEmail = friendEmails[owner]; if(!ownerEmail) return;
+const dateTime = new Date().toLocaleString();
+emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID",{
+to_email: ownerEmail,
+book_title: bookTitle,
+action: action,
+reserver_name: reserver,
+date_time: dateTime
+}).then(res=>{console.log("✅ Email sent",res.status,res.text);})
+.catch(err=>{console.error("❌ Email failed",err);});
+}
+
+
+renderBooks();
+</script>
+</body>
+</html>
