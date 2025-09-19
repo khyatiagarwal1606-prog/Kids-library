@@ -52,13 +52,13 @@
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     // Initialize EmailJS (replace with your real PUBLIC KEY)
-    emailjs.init("YOUR_PUBLIC_KEY");
+    emailjs.init("rVfSXDJVgM16f71ol");
 
     // Friend emails (replace with real emails)
     const friendEmails = {
-      "Khyati": "khyati@example.com",
-      "Anira": "anira@example.com",
-      "Advaiya": "advaiya@example.com",
+      "Khyati": "khyati.agarwal1606@gmail.com",
+      "Anira": "bendre.manali@gmail.com",
+      "Advaiya": "ankooragrawal@gmail.com",
       "Swasti": "swasti@example.com"
     };
 
@@ -167,7 +167,7 @@
 
       const dateTime = new Date().toLocaleString();
 
-      emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID", {
+      emailjs.send("service_iqtrvkr","template_5l1i9qf", {
         to_email: ownerEmail,
         book_title: bookTitle,
         action: action,
@@ -185,3 +185,4 @@
   </script>
 </body>
 </html>
+
