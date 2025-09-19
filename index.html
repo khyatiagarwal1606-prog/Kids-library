@@ -116,44 +116,41 @@
     }
 
     function renderBooks(){
-      const tbody = document.getElementById("booksTable");
-      if(!tbody) return;
-      tbody.innerHTML = "";
+  const tbody = document.getElementById("booksTable");
+  tbody.innerHTML = "";
 
-      books.forEach((book, i) => {
-        const titleSafe = escapeHtml(book.title);
-        const ownerSafe = escapeHtml(book.owner);
+  books.forEach((book, i) => {
+    let status = "✅ Available";
+    let actionHtml = "";
 
-        let statusText = "✅ Available";
-        let actionHtml = "";
-
-        if (book.reservedBy) {
-          const days = Math.floor((new Date() - new Date(book.reservedDate)) / (1000*60*60*24));
-          statusText = `🚫 Reserved by ${escapeHtml(book.reservedBy)} (${days} days)`;
-          actionHtml = `<button class="cancel" onclick="cancelReservation(${i})">🔓 Unreserve</button>`;
-        } else {
-          actionHtml = `
-            <select id="reserver${i}">
-              <option value="Khyati">👧 Khyati</option>
-              <option value="Anira">👧 Anira</option>
-              <option value="Advaiya">👦 Advaiya</option>
-              <option value="Swasti">👧 Swasti</option>
-            </select>
-            <button class="reserve" onclick="reserveBook(${i}, document.getElementById('reserver${i}').value)">🔒 Reserve</button>
-          `;
-        }
-
-        const row = `
-          <tr>
-            <td>📘 ${titleSafe}</td>
-            <td>${ownerSafe}</td>
-            <td>${statusText}</td>
-            <td>${actionHtml}</td>
-          </tr>
-        `;
-        tbody.insertAdjacentHTML("beforeend", row);
-      });
+    if (book.reservedBy) {
+      const days = Math.floor((new Date() - new Date(book.reservedDate)) / (1000*60*60*24));
+      status = `🚫 Reserved by ${book.reservedBy} (${days} days)`;
+      actionHtml = `<button class="cancel" onclick="cancelReservation(${i})">🔓 Unreserve</button>`;
+    } else {
+      const selectId = `reserver${i}`;
+      actionHtml = `
+        <select id="${selectId}">
+          <option value="Khyati">👧 Khyati</option>
+          <option value="Anira">👧 Anira</option>
+          <option value="Advaiya">👦 Advaiya</option>
+          <option value="Swasti">👧 Swasti</option>
+        </select>
+        <button class="reserve" onclick="reserveBook(${i}, document.getElementById('${selectId}').value)">🔒 Reserve</button>
+      `;
     }
+
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>📘 ${book.title}</td>
+        <td>${book.owner}</td>
+        <td>${status}</td>
+        <td>${actionHtml}</td>
+      </tr>
+    `);
+  });
+}
+
 
     // simple HTML-escape to avoid injected markup from titles
     function escapeHtml(str){
@@ -194,3 +191,4 @@
   </script>
 </body>
 </html>
+
