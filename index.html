@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Kids Library Exchange</title>
+  <title>📚 Kids Library Exchange</title>
   <style>
     body { font-family: "Comic Sans MS", cursive, sans-serif; background: linear-gradient(135deg,#f9e7fe,#e3f8ff); margin:0; padding:0; }
     header { background:#ff6f61; color:white; padding:18px; text-align:center; font-size:28px; }
@@ -48,25 +48,21 @@
     </table>
   </div>
 
-  <!-- EmailJS SDK (must be before the script that calls emailjs) -->
+  <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    // Initialize EmailJS - replace rVfSXDJVgM16f71ol with your EmailJS public key
-    if (typeof emailjs !== "undefined") {
-      emailjs.init("rVfSXDJVgM16f71ol");
-    } else {
-      console.warn("EmailJS SDK not loaded.");
-    }
+    // Initialize EmailJS (replace with your real PUBLIC KEY)
+    emailjs.init("YOUR_PUBLIC_KEY");
 
-    // map owners to emails (replace with real emails)
+    // Friend emails (replace with real emails)
     const friendEmails = {
-      "Khyati": "khyati.agarwal1606@gmail.com",
-      "Anira":  "bendre.manali@gmail.com",
-      "Advaiya": "ankooragrawal@gmail.com",
-      "Swasti":  "swasti@example.com"
+      "Khyati": "khyati@example.com",
+      "Anira": "anira@example.com",
+      "Advaiya": "advaiya@example.com",
+      "Swasti": "swasti@example.com"
     };
 
-    // load books from localStorage
+    // Load books from localStorage
     let books = JSON.parse(localStorage.getItem("books") || "[]");
 
     function saveBooks(){
@@ -97,7 +93,6 @@
       saveBooks();
       renderBooks();
 
-      // notify owner via EmailJS
       sendEmail(books[index].owner, books[index].title, "reserved", person);
     }
 
@@ -111,48 +106,48 @@
       saveBooks();
       renderBooks();
 
-      // notify owner via EmailJS
       sendEmail(owner, bookTitle, "unreserved", reserver);
     }
 
     function renderBooks(){
-  const tbody = document.getElementById("booksTable");
-  tbody.innerHTML = "";
+      const tbody = document.getElementById("booksTable");
+      tbody.innerHTML = "";
 
-  books.forEach((book, i) => {
-    let status = "✅ Available";
-    let actionHtml = "";
+      books.forEach((book, i) => {
+        const titleSafe = escapeHtml(book.title);
+        const ownerSafe = escapeHtml(book.owner);
 
-    if (book.reservedBy) {
-      const days = Math.floor((new Date() - new Date(book.reservedDate)) / (1000*60*60*24));
-      status = `🚫 Reserved by ${book.reservedBy} (${days} days)`;
-      actionHtml = `<button class="cancel" onclick="cancelReservation(${i})">🔓 Unreserve</button>`;
-    } else {
-      const selectId = `reserver${i}`;
-      actionHtml = `
-        <select id="${selectId}">
-          <option value="Khyati">👧 Khyati</option>
-          <option value="Anira">👧 Anira</option>
-          <option value="Advaiya">👦 Advaiya</option>
-          <option value="Swasti">👧 Swasti</option>
-        </select>
-        <button class="reserve" onclick="reserveBook(${i}, document.getElementById('${selectId}').value)">🔒 Reserve</button>
-      `;
+        let statusText = "✅ Available";
+        let actionHtml = "";
+
+        if (book.reservedBy) {
+          const days = Math.floor((new Date() - new Date(book.reservedDate)) / (1000*60*60*24));
+          statusText = `🚫 Reserved by ${escapeHtml(book.reservedBy)} (${days} days)`;
+          actionHtml = `<button class="cancel" onclick="cancelReservation(${i})">🔓 Unreserve</button>`;
+        } else {
+          const selectId = `reserver${i}`;
+          actionHtml = `
+            <select id="${selectId}">
+              <option value="Khyati">👧 Khyati</option>
+              <option value="Anira">👧 Anira</option>
+              <option value="Advaiya">👦 Advaiya</option>
+              <option value="Swasti">👧 Swasti</option>
+            </select>
+            <button class="reserve" onclick="reserveBook(${i}, document.getElementById('${selectId}').value)">🔒 Reserve</button>
+          `;
+        }
+
+        tbody.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td>📘 ${titleSafe}</td>
+            <td>${ownerSafe}</td>
+            <td>${statusText}</td>
+            <td>${actionHtml}</td>
+          </tr>
+        `);
+      });
     }
 
-    tbody.insertAdjacentHTML("beforeend", `
-      <tr>
-        <td>📘 ${book.title}</td>
-        <td>${book.owner}</td>
-        <td>${status}</td>
-        <td>${actionHtml}</td>
-      </tr>
-    `);
-  });
-}
-
-
-    // simple HTML-escape to avoid injected markup from titles
     function escapeHtml(str){
       if (str === null || str === undefined) return "";
       return String(str)
@@ -172,23 +167,21 @@
 
       const dateTime = new Date().toLocaleString();
 
-      // replace service_iqtrvkr and template_5l1i9qf with your EmailJS values
-      emailjs.send("service_iqtrvkr","template_5l1i9qf", {
+      emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID", {
         to_email: ownerEmail,
         book_title: bookTitle,
         action: action,
         reserver_name: reserver,
         date_time: dateTime
       }).then(response => {
-        console.log("Email sent:", response.status, response.text);
+        console.log("✅ Email sent:", response.status, response.text);
       }).catch(err => {
-        console.error("Email send error:", err);
+        console.error("❌ Email failed:", err);
       });
     }
 
-    // initial render
+    // Render on page load
     renderBooks();
   </script>
 </body>
 </html>
-
